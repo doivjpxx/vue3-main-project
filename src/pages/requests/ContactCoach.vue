@@ -27,16 +27,21 @@
     },
     methods: {
       validateForm() {
-
-      },
-      submitForm() {
         this.formIsValid = true;
         if (this.email === '' || this.email.includes('@') || this.message === '') {
           return this.formIsValid = false;
         }
+      },
+      submitForm() {
+        this.validateForm();
 
-        // TODO: implement submit form
+        this.$store.dispatch('requests/addRequest', {
+          coachId: this.$route.params.id,
+          email: this.email,
+          message: this.message,
+        });
 
+        this.$router.replace('/coaches');
       }
     }
   };
