@@ -3,7 +3,7 @@
     <h3>{{ fullName }}</h3>
     <h4>${{rate}}hour (s)</h4>
     <div>
-      <base-badge v-for="area in areas" :key="area" :text="area" :title="area">
+      <base-badge v-for="area in areas" :key="area" :type="area" :title="area">
         {{ area }}
       </base-badge>
     </div>
