@@ -4,7 +4,7 @@
 </template>
 
 <script>
-  import TheHeader from './layout/TheHeader';
+  import TheHeader from './components/layout/TheHeader';
   export default {
     name: 'App',
     components: { TheHeader }
