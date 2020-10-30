@@ -1,14 +1,22 @@
 <template>
+  <div>
+    <base-dialog :show="!!error" :title="'An error occured'" @close="closeDialog">
+      <p>{{ error }}</p>
+    </base-dialog>
+  </div>
   <section>
     <coach-filter @change-filter="setFilters"></coach-filter>
   </section>
   <section>
     <base-card>
       <div class="controls">
-        <base-button mode="outline">Refresh</base-button>
-        <base-button v-if="!isCoach" link to="/register">Register as Coach</base-button>
+        <base-button mode="outline" @click="loadCoaches">Refresh</base-button>
+        <base-button v-if="!isCoach && !isLoading" link to="/register">Register as Coach</base-button>
       </div>
-      <ul v-if="hasCoaches">
+      <div v-if="isLoading">
+        <base-spinner></base-spinner>
+      </div>
+      <ul v-else-if="hasCoaches">
         <coach-item v-for="coach in filteredCoaches" :key="coach.id" :id="coach.id" :firstName="coach.firstName"
                     :lastName="coach.lastName" :rate="coach.rate" :areas="coach.areas">
         </coach-item>
@@ -20,10 +28,11 @@
 <script>
   import CoachItem from '../../components/coaches/CoachItem';
   import CoachFilter from '../../components/coaches/CoachFilter';
+  import BaseDialog from '../../components/ui/BaseDialog';
 
   export default {
     name: 'CoachesList',
-    components: { CoachFilter, CoachItem },
+    components: { BaseDialog, CoachFilter, CoachItem },
     computed: {
       isCoach() {
         return this.$store.getters['coaches/isCoach'];
@@ -41,14 +50,16 @@
             return true;
           }
           return false;
-        })
+        });
       },
       hasCoaches() {
-        return this.$store.getters['coaches/hasCoaches'];
+        return !this.isLoading && this.$store.getters['coaches/hasCoaches'];
       }
     },
     data() {
       return {
+        isLoading: false,
+        error: '',
         activeFilters: {
           frontend: true,
           backend: true,
@@ -56,9 +67,24 @@
         }
       };
     },
+    created() {
+      this.loadCoaches();
+    },
     methods: {
       setFilters(updatedFilters) {
         this.activeFilters = updatedFilters;
+      },
+      async loadCoaches() {
+        this.isLoading = true;
+        try {
+          await this.$store.dispatch('coaches/loadCoaches');
+        } catch (err) {
+          this.error = err.message || 'Something when wrong!';
+        }
+        this.isLoading = false;
+      },
+      closeDialog() {
+        this.error = null;
       }
     }
   };
