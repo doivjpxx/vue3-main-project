@@ -1,10 +1,16 @@
 <template>
+  <div>
+    <base-dialog :show="!!error" :title="'An error occured'" @close="closeDialog">
+      <p>{{ error }}</p>
+    </base-dialog>
+  </div>
   <section>
     <base-card>
       <header>
         <h2>Requests Received</h2>
       </header>
-      <ul v-if="hasRequests">
+      <base-spinner v-if="isLoading"></base-spinner>
+      <ul v-if="hasRequests && !isLoading">
         <request-item v-for="request in receivedRequests" :key="request.id" :email="request.userEmail"
                       :message="request.message"></request-item>
       </ul>
@@ -17,10 +23,22 @@
 
 <script>
   import RequestItem from '../../components/requests/RequestItem';
+  import BaseDialog from '../../components/ui/BaseDialog';
 
   export default {
     name: 'RequestsList',
-    components: { RequestItem },
+    components: { BaseDialog, RequestItem },
+
+    data() {
+      return {
+        isLoading: false,
+        error: null
+      };
+    },
+
+    created() {
+      this.loadRequests();
+    },
 
     computed: {
       receivedRequests() {
@@ -28,6 +46,21 @@
       },
       hasRequests() {
         return this.$store.getters['requests/hasRequests'];
+      }
+    },
+
+    methods: {
+      async loadRequests() {
+        this.isLoading = true;
+        try {
+          await this.$store.dispatch('requests/fetchRequest');
+        } catch (err) {
+          this.error = err.message;
+        }
+        this.isLoading = false;
+      },
+      closeDialog() {
+        this.error = null;
       }
     }
   };
