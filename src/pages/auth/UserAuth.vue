@@ -1,32 +1,44 @@
 <template>
-  <form @submit.prevent="submitForm">
-    <base-card>
-      <div class="form-control">
-        <label for="email">
-          Email
-        </label>
-        <input type="email" id="email" name="email" v-model.trim="email" />
-      </div>
-      <div class="form-control">
-        <label for="password">
-          Password
-        </label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          v-model.trim="password"
-        />
-      </div>
-      <p v-if="!formIsValid">
-        Please check your form!
-      </p>
-      <base-button>{{ submitButtonCaptions }}</base-button>
-      <base-button type="button" mode="flat" @click="switchAuthMode">{{
-        switchModeButtonCaptions
-      }}</base-button>
-    </base-card>
-  </form>
+  <div>
+    <base-dialog
+      :show="!!error"
+      title="An error has occurred"
+      @close="closeDialog"
+    >
+      {{ error }}
+    </base-dialog>
+    <base-dialog :show="isLoading" :title="'Authenticating...'" fixed>
+      <base-spinner></base-spinner>
+    </base-dialog>
+    <form @submit.prevent="submitForm">
+      <base-card>
+        <div class="form-control">
+          <label for="email">
+            Email
+          </label>
+          <input type="email" id="email" name="email" v-model.trim="email" />
+        </div>
+        <div class="form-control">
+          <label for="password">
+            Password
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            v-model.trim="password"
+          />
+        </div>
+        <p v-if="!formIsValid">
+          Please check your form!
+        </p>
+        <base-button>{{ submitButtonCaptions }}</base-button>
+        <base-button type="button" mode="flat" @click="switchAuthMode">{{
+          switchModeButtonCaptions
+        }}</base-button>
+      </base-card>
+    </form>
+  </div>
 </template>
 
 <script>
@@ -34,10 +46,12 @@ export default {
   name: 'UserAuth',
   data() {
     return {
+      isLoading: false,
       email: '',
       password: '',
       formIsValid: true,
-      mode: 'login'
+      mode: 'login',
+      error: null
     };
   },
   computed: {
@@ -55,17 +69,35 @@ export default {
     }
   },
   methods: {
-    submitForm() {
+    async submitForm() {
       this.formIsValid = true;
+      this.isLoading = true;
       if (this.email === '' || this.password === '') {
         return (this.formIsValid = false);
       }
+      try {
+        if (this.mode === 'login') {
+          return;
+        } else {
+          await this.$store.dispatch('auth/signup', {
+            email: this.email,
+            password: this.password
+          });
+        }
+      } catch (err) {
+        console.log(err);
+        this.error = err.message;
+      }
+      this.isLoading = false;
     },
     switchAuthMode() {
       if (this.mode === 'login') {
         return (this.mode = 'signup');
       }
       return (this.mode = 'login');
+    },
+    closeDialog() {
+      this.error = null;
     }
   }
 };
