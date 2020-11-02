@@ -16,18 +16,22 @@ export default {
     newRequest.id = responseData.name;
 
     if (!response.ok) {
-      return;
+      throw new Error(responseData.message || 'Error!');
     }
 
     context.commit('addRequest', newRequest);
   },
   async fetchRequest(context) {
-    const coachId = context.rootGetters.getUserId;
-    const response = await fetch(`https://vue3-main.firebaseio.com/requests/${coachId}.json`);
+    const coachId = context.rootGetters['auth/getUserId'];
+    const token = context.rootGetters['auth/getUserToken'];
+
+    console.log(token);
+
+    const response = await fetch(`https://vue3-main.firebaseio.com/requests/${coachId}.json?auth=${token}`);
     const responseData = await response.json();
 
     if (!response.ok) {
-      return;
+      throw new Error(responseData.message || 'Error!');
     }
 
     const requests = [];

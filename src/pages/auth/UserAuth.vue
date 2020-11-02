@@ -72,17 +72,18 @@ export default {
     async submitForm() {
       this.formIsValid = true;
       this.isLoading = true;
+      const credential = {
+        email: this.email,
+        password: this.password
+      };
       if (this.email === '' || this.password === '') {
         return (this.formIsValid = false);
       }
       try {
         if (this.mode === 'login') {
-          return;
+          await this.$store.dispatch('auth/login', credential);
         } else {
-          await this.$store.dispatch('auth/signup', {
-            email: this.email,
-            password: this.password
-          });
+          await this.$store.dispatch('auth/signup', credential);
         }
       } catch (err) {
         console.log(err);
